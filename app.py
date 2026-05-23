@@ -44,19 +44,18 @@ if st.button('Prever'):
     else:
         st.success(' Demanda BAIXA — pode reduzir equipe')
     
-    # SHAP
+   # SHAP
     st.subheader('Por que o modelo previu isso?')
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(entrada_scaled)
     
-    fig, ax = plt.subplots(figsize=(8, 3))
-    shap.waterfall_plot(
-        shap.Explanation(
-            values=shap_values[0],
-            base_values=explainer.expected_value,
-            data=entrada_scaled[0],
-            feature_names=['Mes', 'Ano', 'Trimestre', 'Verao', 'Museu_enc']
-        ),
-        show=False
-    )
+    feature_names = ['Mes', 'Ano', 'Trimestre', 'Verao', 'Museu_enc']
+    importancias = pd.Series(shap_values[0], index=feature_names).sort_values()
+    
+    fig, ax = plt.subplots(figsize=(8, 4))
+    cores = ['#e74c3c' if v < 0 else '#2ecc71' for v in importancias]
+    ax.barh(importancias.index, importancias.values, color=cores)
+    ax.axvline(0, color='black', linewidth=0.8)
+    ax.set_xlabel('Impacto na previsão (SHAP value)')
+    ax.set_title('Fatores que influenciaram a previsão')
     st.pyplot(fig)
